@@ -101,7 +101,7 @@ Solving the **FactInZ** problem is proven to be **NP-hard**. Classical gradient-
 This solver implements a **Hybrid Memetic Algorithm** designed for high-dimensional discrete optimization. It combines global evolutionary exploration with aggressive local search (exploitation).
 
 The solver follows all these 5 steps: 
- -  Random initialisation of the population (SVD & Random)
+ -  initialisation of the population (SVD & Random)
  -  Parents Selection (Tournament & Gender-Based Selection)
  -  Cross-over & Mutations (Uniform Cross-over & Adaptive Operator Selection)
  -  Local Search (Memetic Phase : Coordinate Descent)
@@ -110,6 +110,26 @@ The solver follows all these 5 steps:
 Also, two mecanishms of restart are implemented :
  - Earthquake : Destruction of random columns/line
  - Cataclysm : Keeps the best individuals and resets the rest of the population
+
+
+## ⚙️ Parameters & Configuration
+
+The solver is highly configurable via command-line arguments. You can tune the balance between speed (performance) and solution quality (accuracy).
+
+### CLI Arguments
+
+| Argument | Type | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `--input` | `str` | **Required** | Path to the input data file (formatted with header). |
+| `--time` | `int` | `300` | Maximum execution time in seconds. The solver stops cleanly after this limit. |
+| `--pop_size` | `int` | `40` | Number of individuals in the population. Larger populations explore better but are slower. |
+| `--mut_rate` | `float` | `0.3` | Probability (0.0 to 1.0) that a child undergoes mutation after crossover. |
+| `--ls_steps` | `int` | `5` | Number of Local Search (Coordinate Descent) steps applied to every new child. |
+| `--stag_limit` | `int` | `15` | Number of generations without improvement before triggering an **Earthquake**. |
+| `--earthquake_limit`| `int` | `3` | Number of Earthquakes allowed before triggering a **Cataclysm** (Total Restart). |
+| `--plot` | `flag` | `False` | If present, saves a convergence graph to `convergence.png` at the end. |
+
+
 
 ### 🔄 Algorithmic Workflow
 
