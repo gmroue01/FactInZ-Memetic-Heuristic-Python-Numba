@@ -72,6 +72,31 @@ It should display these lines in your terminal:
     --ls_steps LS_STEPS   LS steps per child
     --plot                Enable plotting
 ```
+## 🧩 Problem Description: FactInZ
+
+This project tackles the **Integer Matrix Factorization (FactInZ)** problem. Unlike standard Non-negative Matrix Factorization (NMF), this variant imposes strict discrete integer constraints on the factors, making the optimization landscape highly non-convex and combinatorial.
+
+### Formal Definition
+Given a target matrix $X \in \mathbb{Z}^{m \times n}$, a target rank $r$, and integer bounds defined by $[L_W, U_W]$ and $[L_H, U_H]$, the goal is to determine two factor matrices:
+* $W \in \mathbb{Z}^{m \times r}$
+* $H \in \mathbb{Z}^{r \times n}$
+
+Such that they minimize the **Squared Frobenius Norm** of the reconstruction error:
+
+$$
+\min_{W, H} \|X - WH\|_F^2 = \sum_{i=1}^{m} \sum_{j=1}^{n} (X_{ij} - (WH)_{ij})^2
+$$
+
+**Subject to:**
+$$
+\forall (i,k), \quad L_W \leq W_{ik} \leq U_W
+$$
+$$
+\forall (k,j), \quad L_H \leq H_{kj} \leq U_H
+$$
+
+### Complexity
+Solving the **FactInZ** problem is proven to be **NP-hard**. Classical gradient-based methods are ineffective due to the discrete nature of the search space. Therefore, this solver employs a high-performance **Metaheuristic** approach (CHC Evolutionary Algorithm) to find near-optimal solutions within a reasonable time.
 
 
 ## 🧠 Algorithm Overview
@@ -79,14 +104,15 @@ It should display these lines in your terminal:
 This solver implements a **Hybrid Memetic Algorithm** designed for high-dimensional discrete optimization. It combines global evolutionary exploration with aggressive local search (exploitation).
 
 The solver follows all these 5 steps: 
- -  Random initialisation of the population (SVD)
- -  Selection for the reproduction
- -  Crossing
- -  Mutation
- -  Selective breeding
+ -  Random initialisation of the population (SVD & Random)
+ -  Parents Selection (Tournament & Gender-Based Selection)
+ -  Cross-over & Mutations (Uniform Cross-over & Adaptive Operator Selection)
+ -  Local Search (Memetic Phase : Coordinate Descent)
+ -  Selective breeding (Restricted Tournament Selection)
 
-
-
+Also, two mecanishms of restart are implemented :
+ - Earthquake : Destruction of random columns/line
+ - Cataclysm : Keeps the best individuals and resets the rest of the population
 
 ### 🔄 Algorithmic Workflow
 
