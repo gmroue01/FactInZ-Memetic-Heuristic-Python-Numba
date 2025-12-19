@@ -176,7 +176,8 @@ Recomputing the error $\|X - WH\|^2$ after every single cell change would be com
 
 ##### 2. Greedy Integer Projection
 For a given cell (e.g., $W_{ik}$), the optimal change $\delta$ is calculated analytically:
-$$\delta = \text{round}\left( \frac{\text{Projection of } R \text{ on } H_k}{\|H_k\|^2} \right)$$
+$\delta = \text{round}\left( \frac{\text{Projection of } R \text{ on } H_k}{\|H_k\|^2} \right)$
+
 This value is then clipped to the user-defined bounds $[L_W, U_W]$. A change is applied only if the theoretical **Gain** (reduction in error) is positive.
 
 ##### 3. Numba Acceleration (`@njit`)
