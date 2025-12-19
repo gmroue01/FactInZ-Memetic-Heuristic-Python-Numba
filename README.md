@@ -83,17 +83,11 @@ Given a target matrix $X \in \mathbb{Z}^{m \times n}$, a target rank $r$, and in
 
 Such that they minimize the **Squared Frobenius Norm** of the reconstruction error:
 
-$$
-\min_{W, H} \|X - WH\|_F^2 = \sum_{i=1}^{m} \sum_{j=1}^{n} (X_{ij} - (WH)_{ij})^2
-$$
+$$\min_{W, H} \|X - WH\|_F^2 = \sum_{i=1}^{m} \sum_{j=1}^{n} (X_{ij} - (WH)_{ij})^2$$
 
 **Subject to:**
-$$
-\forall (i,k), \quad L_W \leq W_{ik} \leq U_W
-$$
-$$
-\forall (k,j), \quad L_H \leq H_{kj} \leq U_H
-$$
+$$\forall (i,k), \quad L_W \leq W_{ik} \leq U_W$$
+$$\forall (k,j), \quad L_H \leq H_{kj} \leq U_H$$
 
 ### Complexity
 Solving the **FactInZ** problem is proven to be **NP-hard**. Classical gradient-based methods are ineffective due to the discrete nature of the search space. Therefore, this solver employs a high-performance **Metaheuristic** approach (CHC Evolutionary Algorithm) to find near-optimal solutions within a reasonable time.
