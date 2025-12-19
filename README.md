@@ -88,59 +88,59 @@ This solver implements a **Hybrid Memetic Algorithm** designed for high-dimensio
 ```mermaid
 graph TD
     %% Initialisation
-    Start((Start)) --> Load[Load Matrix X & Params]
-    Load --> Warmup[Numba JIT Compilation]
-    Warmup --> InitPop[Initialize Population<br/>(SVD-based + Random)]
-    InitPop --> LocalSearchInit[Initial Local Search]
+    Start((Start)) --> Load["Load Matrix X & Params"]
+    Load --> Warmup["Numba JIT Compilation"]
+    Warmup --> InitPop["Initialize Population<br/>(SVD-based + Random)"]
+    InitPop --> LocalSearchInit["Initial Local Search"]
     
     %% Boucle Principale
-    LocalSearchInit --> CheckTime{Max Time<br/>Reached?}
+    LocalSearchInit --> CheckTime{"Max Time<br/>Reached?"}
     
     %% Fin de boucle
-    CheckTime -- Yes --> GoldenPolish[💎 Golden Polish<br/>(5000 Steps LS)]
-    GoldenPolish --> Save[Save Solution & Plot]
+    CheckTime -- Yes --> GoldenPolish["💎 Golden Polish<br/>(5000 Steps LS)"]
+    GoldenPolish --> Save["Save Solution & Plot"]
     Save --> End((End))
 
     %% Logique de Contrôle (Earthquake/Cataclysm)
-    CheckTime -- No --> CheckCata{Earthquake Limit<br/>Reached?}
+    CheckTime -- No --> CheckCata{"Earthquake Limit<br/>Reached?"}
     
     %% Cataclysm
-    CheckCata -- Yes --> Cataclysm[☠️ CATACLYSM<br/>Reset Population except Best]
-    Cataclysm --> ResetStats[Reset AOS & Stats]
+    CheckCata -- Yes --> Cataclysm["☠️ CATACLYSM<br/>Reset Population except Best"]
+    Cataclysm --> ResetStats["Reset AOS & Stats"]
     ResetStats --> CheckTime
     
     %% Earthquake
-    CheckCata -- No --> CheckStag{Stagnation Limit<br/>Reached?}
-    CheckStag -- Yes --> Earthquake[🌋 EARTHQUAKE<br/>Perturb Best & LS]
-    Earthquake --> Replace[Replace Worst Individual]
-    Replace --> ResetStag[Reset Stagnation Counter]
+    CheckCata -- No --> CheckStag{"Stagnation Limit<br/>Reached?"}
+    CheckStag -- Yes --> Earthquake["🌋 EARTHQUAKE<br/>Perturb Best & LS"]
+    Earthquake --> Replace["Replace Worst Individual"]
+    Replace --> ResetStag["Reset Stagnation Counter"]
     ResetStag --> CheckTime
 
     %% Reproduction (Si pas d'event majeur)
-    CheckStag -- No --> Selection[🧬 Parent Selection<br/>(Gender: Fitness x Diversity)]
+    CheckStag -- No --> Selection["🧬 Parent Selection<br/>(Gender: Fitness x Diversity)"]
     
     %% Parallelisation
     subgraph Parallel Workers [Parallel CPU Workers]
         direction TB
-        Selection --> Crossover[Uniform Crossover]
-        Crossover --> AOS{Select Mutation<br/>(AOS Probabilities)}
+        Selection --> Crossover["Uniform Crossover"]
+        Crossover --> AOS{"Select Mutation<br/>(AOS Probabilities)"}
         
-        AOS -- Mutation 1 --> OptVec[⚡ OptVec<br/>(Optimal Vector)]
-        AOS -- Mutation 2 --> Block[🧱 BlockZero<br/>(Destructive)]
-        AOS -- Mutation 3 --> Jolt[🎯 ResJolt<br/>(Residual Guided)]
+        AOS -- Mutation 1 --> OptVec["⚡ OptVec<br/>(Optimal Vector)"]
+        AOS -- Mutation 2 --> Block["🧱 BlockZero<br/>(Destructive)"]
+        AOS -- Mutation 3 --> Jolt["🎯 ResJolt<br/>(Residual Guided)"]
         
-        OptVec --> FastLS[📉 Fast Local Search<br/>(Coordinate Descent)]
+        OptVec --> FastLS["📉 Fast Local Search<br/>(Coordinate Descent)"]
         Block --> FastLS
         Jolt --> FastLS
     end
     
     %% Mise à jour
-    FastLS --> Reward[Calculate Gain & Update AOS Credits]
-    Reward --> RTS[RTS Replacement<br/>(Replace Nearest if Better)]
-    RTS --> UpdateBest{New Global Best?}
+    FastLS --> Reward["Calculate Gain & Update AOS Credits"]
+    Reward --> RTS["RTS Replacement<br/>(Replace Nearest if Better)"]
+    RTS --> UpdateBest{"New Global Best?"}
     
-    UpdateBest -- Yes --> UpdateRec[Update Record & Reset Counters]
-    UpdateBest -- No --> IncStag[Increment Stagnation]
+    UpdateBest -- Yes --> UpdateRec["Update Record & Reset Counters"]
+    UpdateBest -- No --> IncStag["Increment Stagnation"]
     
     UpdateRec --> CheckTime
     IncStag --> CheckTime
