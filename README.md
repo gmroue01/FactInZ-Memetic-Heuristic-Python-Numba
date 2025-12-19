@@ -74,7 +74,7 @@ It should display these lines in your terminal:
 ```
 ## 🧩 Problem Description: FactInZ
 
-This project tackles the **Integer Matrix Factorization (FactInZ)** problem. Unlike standard Non-negative Matrix Factorization (NMF), this variant imposes strict discrete integer constraints on the factors, making the optimization landscape highly non-convex and combinatorial.
+This project tackles the **Integer Matrix Factorization (FactInZ)** problem (see https://github.com/pashtari/qmf). Unlike standard Non-negative Matrix Factorization (NMF), this variant imposes strict discrete integer constraints on the factors, making the optimization landscape highly non-convex and combinatorial.
 
 ### Formal Definition
 Given a target matrix $X \in \mathbb{Z}^{m \times n}$, a target rank $r$, and integer bounds defined by $[L_W, U_W]$ and $[L_H, U_H]$, the goal is to determine two factor matrices:
