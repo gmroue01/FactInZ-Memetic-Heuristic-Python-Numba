@@ -51,3 +51,24 @@ To verify that everything is installed correclty, you cand display the help menu
 ```
 python Memetic.py --help
 ```
+It should display these lines :
+```
+  usage: Memetic.py [-h] --input INPUT [--time TIME] [--pop_size POP_SIZE] [--mut_rate MUT_RATE]
+                    [--stag_limit STAG_LIMIT] [--earthquake_limit EARTHQUAKE_LIMIT]
+                    [--ls_steps LS_STEPS] [--plot]
+  
+  CHC Gender Solver
+  
+  options:
+    -h, --help            show this help message and exit
+    --input INPUT         Path to input file
+    --time TIME           Max execution time (s)
+    --pop_size POP_SIZE   Population size
+    --mut_rate MUT_RATE   Mutation rate
+    --stag_limit STAG_LIMIT
+                          Stagnation before Earthquake
+    --earthquake_limit EARTHQUAKE_LIMIT
+                          Max Earthquakes before Cataclysm
+    --ls_steps LS_STEPS   LS steps per child
+    --plot                Enable plotting
+```
