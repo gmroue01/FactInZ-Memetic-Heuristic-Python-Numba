@@ -101,7 +101,7 @@ Solving the **FactInZ** problem is proven to be **NP-hard**. Classical gradient-
 This solver implements a **Hybrid Memetic Algorithm** designed for high-dimensional discrete optimization. It combines global evolutionary exploration with aggressive local search (exploitation).
 
 The solver follows all these 5 steps: 
- -  initialisation of the population (SVD & Random)
+ -  Initialisation of the population (SVD & Random)
  -  Parents Selection (Tournament & Gender-Based Selection)
  -  Cross-over & Mutations (Uniform Cross-over & Adaptive Operator Selection)
  -  Local Search (Memetic Phase : Coordinate Descent)
@@ -157,8 +157,52 @@ Standard Singular Value Decomposition (SVD) is deterministic (it always gives th
 #### 3. Immediate Refinement
 Raw SVD approximations are often infeasible or suboptimal on the integer grid. Therefore, **every** new individual undergoes an immediate **Local Search (200 steps)** (`fast_local_search`) right after generation. This "polishes" the rough mathematical approximation into a valid, high-quality integer solution before the evolutionary loop begins.
 
+## 🧬 1. Parent Selection Strategy
 
-### 📉 Core Engine: Fast Local Search
+To prevent premature convergence (a common issue in discrete matrix factorization), the solver employs a dual selection strategy that enforces a strict balance between **Exploitation** (Fitness) and **Exploration** (Diversity). The population is split into two pools to form breeding pairs.
+
+### A. Gender-Based Selection (50% of pairs)
+This unique mechanism treats Fitness and Diversity as two separate "genders" that must mate:
+
+* **"Males" (Fitness Carriers):** The top 50% of the population, sorted strictly by score (lowest error). They carry the genetic material that works well.
+* **"Females" (Diversity Carriers):** The bottom 50% of the population, but re-sorted based on their **Manhattan Distance** from the current Global Best solution. The most distant individuals are ranked highest.
+* **The Pairing Logic:** A breeding pair is formed by selecting one random "Male" and one random "Female". This forces the algorithm to combine high-performance genes with genetically distinct features, maintaining a healthy gene pool.
+
+### B. Tournament Selection (50% of pairs)
+To ensure standard evolutionary pressure, the remaining pairs are formed using **Binary Tournament Selection**. Two individuals are picked at random from the entire population, and the one with the better score becomes a parent. This is a classic method to favor "good enough" solutions without being too elitist.
+
+---
+
+## ⚙️ 2. Breeding Pipeline & Parallelism
+
+Once parents are selected, the creation of new offspring is a multi-step process fully optimized for multi-core CPUs.
+
+### A. Factor-Wise Uniform Crossover
+Offspring are created using a **Uniform Crossover** that operates on the rank dimension $r$ (the factors).
+For every factor index $k \in [0, r]$, the child inherits the **entire** $k$-th component (Column $k$ of $W$ and Row $k$ of $H$) from either Parent 1 or Parent 2 with a 50/50 probability.
+
+$$
+\begin{cases}
+W_{child}[:, k] = W_{P1}[:, k] \\
+H_{child}[k, :] = H_{P1}[k, :]
+\end{cases}
+\quad \text{OR} \quad
+\begin{cases}
+W_{child}[:, k] = W_{P2}[:, k] \\
+H_{child}[k, :] = H_{P2}[k, :]
+\end{cases}
+$$
+
+### B. Parallel Execution (Joblib)
+The breeding phase is the most computationally intensive part of the algorithm. To maximize efficiency, it is parallelized using `joblib`. Each CPU core acts as an independent worker processing a batch of parents.
+
+**The Worker Workflow:**
+1.  **Crossover:** Creation of the raw child from P1 and P2.
+2.  **Adaptive Mutation:** Application of a specific mutation operator (`OptVec`, `BlockZero`, or `ResJolt`) determined by the AOS probabilities.
+3.  **Immediate Improvement:** Execution of `fast_local_search` to "polish" the child. This is a Memetic Algorithm feature: we only add **local optima** to the population, not random candidates.
+
+
+### Local Search : Memetic feature
 
 The heart of the solver's performance is the `fast_local_search` function. Unlike standard gradient descent which is slow for discrete problems, this implementation uses a highly optimized **Coordinate Descent** algorithm tailored for integer factorization.
 
@@ -185,7 +229,57 @@ The function is decorated with `@njit(fastmath=True, nogil=True)`.
 * **Machine Code:** It is compiled to optimized machine code via LLVM, running as fast as C++.
 * **No GIL:** It releases the Python Global Interpreter Lock, allowing multiple CPU cores to run this search in parallel on different individuals without blocking each other.*
 
-  
+
+## 🛡️ Survival Strategy: Restricted Tournament Selection (RTS)
+
+To update the population, the solver does not simply replace the worst individuals (which would lead to rapid loss of diversity). Instead, it employs **Restricted Tournament Selection (RTS)**, a crowding technique designed to maintain multiple distinct niches in the population.
+
+### The Mechanism
+For every new child generated:
+
+1.  **Window Selection:** We select a random subset (window) of the current population.
+    * *Window Size ($w$):* Set to **20** during the Exploration Phase (P1) to be very strict about diversity, and reduced to **10** during the Polish Phase (P2).
+2.  **Nearest Neighbor Search:** Within this window, we identify the individual that is **most similar** to the child (phenotypically nearest) using the Manhattan Distance metric:
+    $$d(Child, P) = \sum |W_{child} - W_P| + \sum |H_{child} - H_P|$$
+3.  **Competition:** The child competes *only* against this nearest neighbor.
+    * If `Score(Child) <= Score(Nearest)`, the child **replaces** the neighbor.
+    * Otherwise, the child is discarded.
+
+### Why RTS?
+
+
+By forcing children to compete against their "family" (solutions that look like them), RTS prevents a single super-solution from taking over the entire population. It allows different sub-optimal but distinct solutions to survive, preserving genetic material that might be crucial for escaping future local optima.
+
+## 🛑 Escaping Local Optima: Earthquake & Cataclysm
+
+The non-convex nature of integer matrix factorization makes it prone to deep local optima. The solver employs a two-tier escalation strategy to detect stagnation and force the search into new areas.
+
+### 1. 🌋 Earthquake (Local Perturbation)
+**Trigger:** Triggered when the global best score hasn't improved for `stag_limit` generations (default: 15).
+
+**Mechanism:**
+Instead of restarting, we take the current best solution and "shake" it aggressively:
+1.  **Cellular Noise:** We randomize ~15% of the cells in $W$ and $H$ (intensity increases by +5% for each consecutive earthquake).
+2.  **Factor Nuke:** With a 50% probability, one entire factor (column $k$ of $W$ / row $k$ of $H$) is completely randomized.
+3.  **Stabilization:** The shaken solution undergoes a deep Local Search (500 steps) to settle into a new local basin.
+4.  **Injection:** This new solution replaces the **worst** individual in the population, and the search phase resets to **Exploration (P1)**.
+
+
+
+### 2. ☠️ Cataclysm (Global Restart)
+**Trigger:** Triggered if `earthquake_limit` consecutive earthquakes (default: 3) fail to improve the best score.
+
+**Mechanism:**
+The solver assumes the entire population is trapped in a sub-optimal valley. It initiates a "Mass Extinction":
+1.  **Preservation:** The single Best Global solution is saved.
+2.  **Population Wipe:** All other individuals are deleted.
+3.  **Repopulation:** The population is refilled with mutated clones of the Best Global solution. Each clone undergoes a **Factor Reset** (2 random factors are completely re-randomized) followed by Local Search.
+4.  **Memory Wipe:** The Adaptive Operator Selection (AOS) history is cleared to allow unbiased learning for the new phase.
+
+**Outcome:** This effectively respawns the search around the best known solution but with massive structural variations, forcing the algorithm to explore radically different directions.
+
+
+
 #### Diagram
 ```mermaid
 graph TD
