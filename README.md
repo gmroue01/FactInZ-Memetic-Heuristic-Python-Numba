@@ -1,3 +1,4 @@
+# FactInZ : Memetic Heuristic 
 ## 🛠️ Installation
 
 Follow these steps to set up the project environment on your local machine.
@@ -34,3 +35,19 @@ It is highly recommended to use a **virtual environment**. This creates an isola
   ```
   *Note : if the command fails, you might need to install the venv package first (eg. ```sudo apt install python3-venv``` on Ubuntu/Debian)*
 
+### Install Dependencies 
+Once the virtual environment is active, install the required libraries using the provided requirements.txt file :
+```
+pip install -r requirements.txt
+```
+The libraries installed are :
+  - Numpy (>=1.20.0) : Features mathematical and optimized tools for scientific computing. (see https://numpy.org/)
+  - numba (>=0.55.0) : Translates Python functions into optimized machine code at runtime using LLVM.(see https://numba.pydata.org/)
+  - joblib(>=1.1.0) : Provides a set of tools that enable parallel computing. (see https://joblib.readthedocs.io/en/stable/)
+  - matplotlib(>=3.5.0) : Provides tools to visualize data using graphs.(see https://matplotlib.org/)
+### Verification
+To verify that everything is installed correclty, you cand display the help menu of the solver
+
+```
+python Memetic.py --help
+```
