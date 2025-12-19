@@ -117,6 +117,19 @@ Also, two mecanishms of restart are implemented :
  - Cataclysm : Keeps the best individuals and resets the rest of the population
 
 
+## 🏆 Results & Performance
+
+Below are the scores achieved by the solver on the official instances provided during the class competition. The objective is to minimize the Squared Frobenius Error, so a **lower score indicates a better solution**.
+
+| Instance Name | Dimensions ($m \times n$) | Rank ($r$) | Final Score ($\|E\|_F^2$) | Time (min) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Challenge 1** | $101 \times 17$ | 2 | **76** | 15
+| **Challenge 2** | $101 \times 17$ | 5 | **130** | 15
+| **Challenge 3** | $101 \times 17$ | 5 | **130** | 15
+| **Challenge 4** | $120 \times 120$ | 10 | **17 603** | 15
+| **Challenge 5** | $1000 \times 1000$ | 10 | **159 070** | 40
+
+
 ## ⚙️ Parameters & Configuration
 
 The solver is highly configurable via command-line arguments. You can tune the balance between speed (performance) and solution quality (accuracy).
