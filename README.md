@@ -248,7 +248,7 @@ Unlike standard genetic algorithms that rely on random bit-flipping, this solver
 
 ---
 
-### Local Search : Memetic feature
+## Local Search : Memetic feature
 
 The heart of the solver's performance is the `fast_local_search` function. Unlike standard gradient descent which is slow for discrete problems, this implementation uses a highly optimized **Coordinate Descent** algorithm tailored for integer factorization.
 
