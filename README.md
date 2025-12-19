@@ -275,6 +275,7 @@ The function is decorated with `@njit(fastmath=True, nogil=True)`.
 * **Machine Code:** It is compiled to optimized machine code via LLVM, running as fast as C++.
 * **No GIL:** It releases the Python Global Interpreter Lock, allowing multiple CPU cores to run this search in parallel on different individuals without blocking each other.*
 
+---
 
 ## 🛡️ Survival Strategy: Restricted Tournament Selection (RTS)
 
@@ -296,6 +297,7 @@ For every new child generated:
 
 By forcing children to compete against their "family" (solutions that look like them), RTS prevents a single super-solution from taking over the entire population. It allows different sub-optimal but distinct solutions to survive, preserving genetic material that might be crucial for escaping future local optima.
 
+---
 ## 🛑 Escaping Local Optima: Earthquake & Cataclysm
 
 The non-convex nature of integer matrix factorization makes it prone to deep local optima. The solver employs a two-tier escalation strategy to detect stagnation and force the search into new areas.
