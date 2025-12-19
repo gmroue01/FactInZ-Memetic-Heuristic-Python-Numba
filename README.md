@@ -22,5 +22,15 @@ It is highly recommended to use a **virtual environment**. This creates an isola
   # Activate the environment
   .\venv\Scripts\activate
   ```
+  *Note : if the command fails (error : "PSSecurityException : Unauthorized Acces") and you use PowerShell Terminal, you might enable the script execution. Temporary , you fix it with this command ```Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process``` in your current PowerShell Terminal.*
+  
+- **For MacOs/Linus**
+  ```
+  # Create the environment named 'venv'
+  python3 -m venv venv
 
+  # Activate the environment
+  source venv/bin/activate
+  ```
+  *Note : if the command fails, you might need to install the venv package first (eg. ```sudo apt install python3-venv``` on Ubuntu/Debian)*
 
