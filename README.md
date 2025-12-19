@@ -150,8 +150,9 @@ Standard Singular Value Decomposition (SVD) is deterministic (it always gives th
 3.  **Random Scaling (The "Shake"):** To create diversity, we introduce a random scalar $\alpha \sim U[0.9, 1.1]$:
     $W_{init} = W_{float} \times \alpha$
     $H_{init} = H_{float} \times \frac{1}{\alpha}$
+    
     *This operation modifies the internal values of* $W$ *and* $H$ *while preserving the product * $WH \approx X$.
-4.  **Integer Projection:** The floating-point values are rounded to the nearest integer and clipped to the bounds $[L, U]$.
+5.  **Integer Projection:** The floating-point values are rounded to the nearest integer and clipped to the bounds $[L, U]$.
 
 #### 3. Immediate Refinement
 Raw SVD approximations are often infeasible or suboptimal on the integer grid. Therefore, **every** new individual undergoes an immediate **Local Search (200 steps)** (`fast_local_search`) right after generation. This "polishes" the rough mathematical approximation into a valid, high-quality integer solution before the evolutionary loop begins.
