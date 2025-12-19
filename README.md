@@ -78,7 +78,12 @@ It should display these lines in your terminal:
 
 This solver implements a **Hybrid Memetic Algorithm** designed for high-dimensional discrete optimization. It combines global evolutionary exploration with aggressive local search (exploitation).
 
-### 1. Global workflow
+The solver follows all these 5 steps: 
+ -  Random initialisation of the population (SVD)
+ -  Selection for the reproduction
+ -  Crossing
+ -  Mutation
+ -  Selective breeding
 
 
 
