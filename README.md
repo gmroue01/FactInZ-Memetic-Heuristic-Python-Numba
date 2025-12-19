@@ -86,6 +86,7 @@ Such that they minimize the **Squared Frobenius Norm** of the reconstruction err
 $$\min_{W, H} \|X - WH\|_F^2 = \sum_{i=1}^{m} \sum_{j=1}^{n} (X_{ij} - (WH)_{ij})^2$$
 
 **Subject to:**
+
 $$\forall (i,k), \quad L_W \leq W_{ik} \leq U_W$$
 
 $$\forall (k,j), \quad L_H \leq H_{kj} \leq U_H$$
