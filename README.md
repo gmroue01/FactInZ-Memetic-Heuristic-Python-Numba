@@ -51,7 +51,7 @@ To verify that everything is installed correclty, you cand display the help menu
 ```
 python Memetic.py --help
 ```
-It should display these lines :
+It should display these lines in your terminal:
 ```
   usage: Memetic.py [-h] --input INPUT [--time TIME] [--pop_size POP_SIZE] [--mut_rate MUT_RATE]
                     [--stag_limit STAG_LIMIT] [--earthquake_limit EARTHQUAKE_LIMIT]
