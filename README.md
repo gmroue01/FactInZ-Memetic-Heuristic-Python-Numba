@@ -131,8 +131,60 @@ The solver is highly configurable via command-line arguments. You can tune the b
 
 
 
-### 🔄 Algorithmic Workflow
+## 🔄 Algorithmic Workflow
+### 🌱 Population Initialization
 
+The initialization phase is critical for the solver's performance. Instead of starting from a purely random state (which converges slowly), we employ a **hybrid initialization strategy** that provides a "hot start" while ensuring sufficient genetic diversity.
+
+#### 1. Hybrid Composition
+The population (size $N$) is composed of two types of individuals:
+
+* **SVD-Based Individuals ($N - 5$):** The vast majority of the population is initialized using mathematical approximation. This places the solver immediately in a "good" region of the search space.
+* **Random Individuals (5):** A small fixed number (5) of individuals are generated purely randomly. This ensures that the genetic pool retains "wild" genetic material to avoid getting trapped in the SVD's bias.
+
+#### 2. Technique: Randomized SVD Projection
+Standard Singular Value Decomposition (SVD) is deterministic (it always gives the same result). To generate distinct individuals from a single SVD, we apply a **random scalar perturbation**:
+
+1.  **Decomposition:** We compute $X \approx U \Sigma V^T$ using standard floating-point SVD.
+2.  **Balancing:** We distribute the singular values $\Sigma$ evenly: $W_{float} = U\sqrt{\Sigma}$ and $H_{float} = \sqrt{\Sigma}V^T$.
+3.  **Random Scaling (The "Shake"):** To create diversity, we introduce a random scalar $\alpha \sim U[0.9, 1.1]$:
+    $$W_{init} = W_{float} \times \alpha$$
+    $$H_{init} = H_{float} \times \frac{1}{\alpha}$$
+    *This operation modifies the internal values of $W$ and $H$ while preserving the product $WH \approx X$.*
+4.  **Integer Projection:** The floating-point values are rounded to the nearest integer and clipped to the bounds $[L, U]$.
+
+#### 3. Immediate Refinement
+Raw SVD approximations are often infeasible or suboptimal on the integer grid. Therefore, **every** new individual undergoes an immediate **Local Search (200 steps)** (`fast_local_search`) right after generation. This "polishes" the rough mathematical approximation into a valid, high-quality integer solution before the evolutionary loop begins.
+
+
+### 📉 Core Engine: Fast Local Search
+
+The heart of the solver's performance is the `fast_local_search` function. Unlike standard gradient descent which is slow for discrete problems, this implementation uses a highly optimized **Coordinate Descent** algorithm tailored for integer factorization.
+
+#### How it Works
+Instead of updating the entire matrix at once, the algorithm iterates through every single cell of $W$ and $H$ sequentially and solves the 1D optimization problem: *"What is the best integer value for this specific cell, assuming all others are fixed?"*
+
+#### 🚀 Key Optimizations
+
+##### 1. The Residual Matrix ($R$) Trick
+Recomputing the error $\|X - WH\|^2$ after every single cell change would be computationally prohibitive ($O(m \cdot n \cdot r)$).
+* **Solution:** We maintain a **Residual Matrix** $R = X - WH$.
+* **Incremental Update:** When a cell $W_{ik}$ changes by a value $\delta$, we update $R$ incrementally:
+    $$R_{ij} \leftarrow R_{ij} - (\delta \times H_{kj})$$
+* **Benefit:** This reduces the complexity of an update to linear time relative to the dimensions, avoiding full matrix multiplication.
+
+##### 2. Greedy Integer Projection
+For a given cell (e.g., $W_{ik}$), the optimal change $\delta$ is calculated analytically:
+$$\delta = \text{round}\left( \frac{\text{Projection of } R \text{ on } H_k}{\|H_k\|^2} \right)$$
+This value is then clipped to the user-defined bounds $[L_W, U_W]$. A change is applied only if the theoretical **Gain** (reduction in error) is positive.
+
+##### 3. Numba Acceleration (`@njit`)
+The function is decorated with `@njit(fastmath=True, nogil=True)`.
+* **Machine Code:** It is compiled to optimized machine code via LLVM, running as fast as C++.
+* **No GIL:** It releases the Python Global Interpreter Lock, allowing multiple CPU cores to run this search in parallel on different individuals without blocking each other.*
+
+  
+#### Diagram
 ```mermaid
 graph TD
     %% Initialisation
