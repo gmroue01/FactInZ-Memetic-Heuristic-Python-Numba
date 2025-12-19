@@ -1,7 +1,8 @@
 # FactInZ : Memetic Heuristic 
 
 
-> **🎓 Context:** This project was developed as part of the **Graph Theory & Combinatorial Optimization** course. The algorithm was designed to compete in a class-wide tournament, benchmarking various metaheuristic approaches against each other to solve the NP-hard **FactInZ** problem under strict time constraints.
+## 🎓 Context: 
+This project was developed as part of the **Graph Theory & Combinatorial Optimization** course. The algorithm was designed to compete in a class-wide tournament, benchmarking various metaheuristic approaches against each other to solve the NP-hard **FactInZ** problem under strict time constraints.
 
 
 ## 🛠️ Installation
