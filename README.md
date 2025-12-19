@@ -148,9 +148,9 @@ Standard Singular Value Decomposition (SVD) is deterministic (it always gives th
 1.  **Decomposition:** We compute $X \approx U \Sigma V^T$ using standard floating-point SVD.
 2.  **Balancing:** We distribute the singular values $\Sigma$ evenly: $W_{float} = U\sqrt{\Sigma}$ and $H_{float} = \sqrt{\Sigma}V^T$.
 3.  **Random Scaling (The "Shake"):** To create diversity, we introduce a random scalar $\alpha \sim U[0.9, 1.1]$:
-    $$W_{init} = W_{float} \times \alpha$$
-    $$H_{init} = H_{float} \times \frac{1}{\alpha}$$
-    *This operation modifies the internal values of $W$ and $H$ while preserving the product $WH \approx X$.*
+    $W_{init} = W_{float} \times \alpha$
+    $H_{init} = H_{float} \times \frac{1}{\alpha}$
+    *This operation modifies the internal values of* $W$ *and* $H$ *while preserving the product * $WH \approx X$.
 4.  **Integer Projection:** The floating-point values are rounded to the nearest integer and clipped to the bounds $[L, U]$.
 
 #### 3. Immediate Refinement
