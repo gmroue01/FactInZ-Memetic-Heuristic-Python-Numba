@@ -240,7 +240,7 @@ Instead of updating the entire matrix at once, the algorithm iterates through ev
 #### 🚀 Key Optimizations
 
 ##### 1. The Residual Matrix ($R$) Trick
-Recomputing the error $\|X - WH\|^2$ after every single cell change would be computationally prohibitive ($O(m \cdot n \cdot r)$).
+Recomputing the error $\|X - WH\|^2$ after every single cell change would be computationally prohibitive ($O(mnr)$).
 * **Solution:** We maintain a **Residual Matrix** $R = X - WH$.
 * **Incremental Update:** When a cell $W_{ik}$ changes by a value $\delta$, we update $R$ incrementally:
     $$R_{ij} \leftarrow R_{ij} - (\delta \times H_{kj})$$
@@ -266,7 +266,7 @@ To update the population, the solver does not simply replace the worst individua
 For every new child generated:
 
 1.  **Window Selection:** We select a random subset (window) of the current population.
-    * *Window Size ($w$):* Set to **20** during the Exploration Phase (P1) to be very strict about diversity, and reduced to **10** during the Polish Phase (P2).
+    **Window Size (w):** Set to **20** during the Exploration Phase (P1) to be very strict about diversity, and reduced to **10** during the Polish Phase (P2).
 2.  **Nearest Neighbor Search:** Within this window, we identify the individual that is **most similar** to the child (phenotypically nearest) using the Manhattan Distance metric:
     $$d(Child, P) = \sum |W_{child} - W_P| + \sum |H_{child} - H_P|$$
 3.  **Competition:** The child competes *only* against this nearest neighbor.
@@ -308,7 +308,7 @@ The solver assumes the entire population is trapped in a sub-optimal valley. It 
 
 
 
-#### Diagram
+## Diagram
 ```mermaid
 graph TD
     %% Initialisation
