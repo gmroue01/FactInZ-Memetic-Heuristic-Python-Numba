@@ -151,13 +151,13 @@ Standard Singular Value Decomposition (SVD) is deterministic (it always gives th
     $W_{init} = W_{float} \times \alpha$
     $H_{init} = H_{float} \times \frac{1}{\alpha}$
     
-    *This operation modifies the internal values of* $W$ *and* $H$ *while preserving the product * $WH \approx X$.
+    *This operation modifies the internal values of* $W$ *and* $H$ *while preserving the product* $WH \approx X$.
 5.  **Integer Projection:** The floating-point values are rounded to the nearest integer and clipped to the bounds $[L, U]$.
 
 #### 3. Immediate Refinement
 Raw SVD approximations are often infeasible or suboptimal on the integer grid. Therefore, **every** new individual undergoes an immediate **Local Search (200 steps)** (`fast_local_search`) right after generation. This "polishes" the rough mathematical approximation into a valid, high-quality integer solution before the evolutionary loop begins.
 
-## 🧬 1. Parent Selection Strategy
+## 🧬 Parent Selection Strategy
 
 To prevent premature convergence (a common issue in discrete matrix factorization), the solver employs a dual selection strategy that enforces a strict balance between **Exploitation** (Fitness) and **Exploration** (Diversity). The population is split into two pools to form breeding pairs.
 
@@ -173,7 +173,7 @@ To ensure standard evolutionary pressure, the remaining pairs are formed using *
 
 ---
 
-## ⚙️ 2. Breeding Pipeline & Parallelism
+## ⚙️ Breeding Pipeline & Parallelism
 
 Once parents are selected, the creation of new offspring is a multi-step process fully optimized for multi-core CPUs.
 
@@ -201,6 +201,34 @@ The breeding phase is the most computationally intensive part of the algorithm. 
 2.  **Adaptive Mutation:** Application of a specific mutation operator (`OptVec`, `BlockZero`, or `ResJolt`) determined by the AOS probabilities.
 3.  **Immediate Improvement:** Execution of `fast_local_search` to "polish" the child. This is a Memetic Algorithm feature: we only add **local optima** to the population, not random candidates.
 
+
+### C. Adaptive Mutation Operators
+
+Unlike standard genetic algorithms that rely on random bit-flipping, this solver utilizes three specialized, domain-specific mutation operators. These are controlled by the **Adaptive Operator Selection (AOS)** mechanism, which favors the operators that have historically yielded the best fitness gains during the run.
+
+#### 1. OptVec: Optimal Vector Replacement (Greedy)
+* **Code:** `mutate_optimal_vector_replacement`
+* **Concept:** This is a "Greedy" operator. It selects a random factor (a column $k$ of $W$ or a row $k$ of $H$) and replaces it entirely with its **mathematically optimal projection**.
+* **The Math:** It solves the 1-variable least squares problem for the selected vector, assuming the rest of the matrix is fixed.
+  $$W_{opt}[:,k] = \frac{(X - W_{\neg k}H_{\neg k}) H[k,:]^T}{\|H[k,:]\|^2}$$
+* **Effect:** drastically reduces error by mathematically forcing a vector to its ideal position in a single step.
+
+#### 2. BlockZero: Destructive Blockout (Exploration)
+* **Code:** `mutate_zero_blockout`
+* **Concept:** A "Destructive" operator designed to escape local optima.
+* **Mechanism:** It selects a random rectangular block within $W$ or $H$ and forces all values inside it to **zero**.
+* **Effect:** This effectively "erases" a part of the solution. When the Local Search runs immediately after, it is forced to "rebuild" this missing part from scratch, often finding a different (and better) configuration than what was there before.
+
+#### 3. ResJolt: Residual-Guided Jolt (Targeted)
+* **Code:** `mutate_residual_guided_jolt`
+* **Concept:** A "Sniper" operator that targets high-error regions.
+* **Mechanism:**
+    1.  It scans the Residual Matrix ($R = X - WH$) to find coordinates $(i, j)$ where the error is high.
+    2.  It identifies which factors in $W$ and $H$ contribute to this specific cell.
+    3.  It "jolts" (nudges) these specific factors by $+1$ or $-1$ in the direction that reduces the error.
+* **Effect:** Unlike random noise, this operator only touches the parts of the matrix that are actually causing problems.
+
+---
 
 ### Local Search : Memetic feature
 
